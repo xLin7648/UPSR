@@ -147,15 +147,13 @@ public class GameUpdateManager : MonoBehaviour
                     control.transform.localPosition = new Vector3(0, 0, -50);
                 }
 
-                if (!progressControl.isPlay)
+                if (progressControl.isPaused)
                 {
                     i++;
                     continue;
                 }
 
-                var diff = Mathf.Abs(tempoNoteInfo.realTime - progressControl.nowTime);
-
-                if (diff <= 5)
+                if (tempoNoteInfo.realTime < progressControl.nowTime + 2f)
                 {
                     if (control.Judge())
                     {
@@ -163,7 +161,7 @@ public class GameUpdateManager : MonoBehaviour
                         baseNoteControls.RemoveAt(i);
                         i--;*/
 
-                        if (progressControl.isPlay)
+                        if (!progressControl.isPaused)
                         {
                             control.gameObject.SetActive(false);
                             baseNoteControls.RemoveAt(i);

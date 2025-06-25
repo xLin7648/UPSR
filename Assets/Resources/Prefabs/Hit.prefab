@@ -118,6 +118,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Particle System
       objectReference: {fileID: 0}
+    - target: {fileID: 6737511211217286617, guid: 012a75a590b7f4e46a91adb2b99f4b1e, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6737511211217286617, guid: 012a75a590b7f4e46a91adb2b99f4b1e, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 1430935447
+      objectReference: {fileID: 0}
     - target: {fileID: 6737511211217286623, guid: 012a75a590b7f4e46a91adb2b99f4b1e, type: 3}
       propertyPath: m_RootOrder
       value: 0

@@ -24,9 +24,6 @@ public class HitSongManager : MonoBehaviour
         instance = this;
 
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-        var config = AudioSettings.GetConfiguration();
-        config.dspBufferSize = 256;
-
         NativeAudio.Dispose();
         var options = new NativeAudio.InitializationOptions
         {

@@ -5,8 +5,6 @@ using UnityEngine;
 
 public abstract class BaseNoteControl : MonoBehaviour
 {
-    public GameObject hitPPrefab;
-    public GameObject hitGPrefab;
     public ProgressControl progressControl; // 0x20
     public LevelInformation levelInformation; // 0x28
     public JudgeLineControl judgeLine; // 0x30

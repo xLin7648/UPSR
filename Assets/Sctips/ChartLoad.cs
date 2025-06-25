@@ -143,7 +143,7 @@ public class ChartLoad : MonoBehaviour
         levelInformation.numOfNotes = chart.numOfNotes;
         levelInformation.judgeLineList = chart.judgeLineList;
 
-        progressControl.Offset = levelInformation.offset;
+        progressControl.offset = levelInformation.offset;
 
         // ¥¶¿Ì“Ù∑˚
         SortForNoteWithFloorPosition();
@@ -217,7 +217,7 @@ public class ChartLoad : MonoBehaviour
             if (judgeLine.notesAbove != null)
             {
                 judgeLine.notesAbove.Sort((a, b) =>
-                    b.floorPosition.CompareTo(a.floorPosition) // Ωµ–Ú≈≈–Ú
+                    a.floorPosition.CompareTo(b.floorPosition) // Ωµ–Ú≈≈–Ú
                 );
             }
 
@@ -225,7 +225,7 @@ public class ChartLoad : MonoBehaviour
             if (judgeLine.notesBelow != null)
             {
                 judgeLine.notesBelow.Sort((a, b) =>
-                    b.floorPosition.CompareTo(a.floorPosition) // Ωµ–Ú≈≈–Ú
+                    a.floorPosition.CompareTo(b.floorPosition) // Ωµ–Ú≈≈–Ú
                 );
             }
         }

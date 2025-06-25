@@ -37,6 +37,8 @@ public class JudgeControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (progressControl.isPaused) return;
+
         // 获取当前游戏时间
         float currentTime = progressControl.nowTime;
         if (currentTime < 0) return;
@@ -144,80 +146,73 @@ public class JudgeControl : MonoBehaviour
         // 初始化最小时间差和当前选中音符
         _minDeltaTime = float.MaxValue;
         _code = -1;
-        float v23 = -0.5f; // 原始代码中的常量
 
         // 遍历音符进行判定
         for (int index = _startIndex; index <= _endIndex; index++)
         {
-            if (index >= chartNoteSortByTime.Count) break;
+            ChartNote note = chartNoteSortByTime[index];
+            JudgeLineControl judgeLine = judgeLineControls[note.judgeLineIndex];
 
-            ChartNote currentNote = chartNoteSortByTime[index];
+            // 计算手指与音符的横向距离
+            float fingerX = judgeLine.fingerPositionX[fingerIndex];
+            _touchPos = Mathf.Abs(note.positionX - fingerX);
 
-            // 获取判定线控制组件
-            int lineIndex = currentNote.judgeLineIndex;
-
-            JudgeLineControl lineControl = judgeLineControls[lineIndex];
-
-            float fingerX = lineControl.fingerPositionX[fingerIndex];
-            // 计算位置差
-            _touchPos = Mathf.Abs(currentNote.positionX - fingerX);
-
-            // 跳过已判定音符
-            if (currentNote.isJudged) continue;
-
-            // 检查时间差和位置条件
-            float timeDelta = currentNote.realTime - nowTime;
-            if (timeDelta < _minDeltaTime + 0.01f && _touchPos < 1.9f)
+            // 核心判定逻辑
+            if (!note.isJudged)
             {
-                // 计算判定时间阈值
-                _badTime = (_touchPos <= 0.9f) ?
-                    badTimeRange :
-                    badTimeRange + (_touchPos - 0.9f) * perfectTimeRange * v23;
+                float timeDelta = note.realTime - nowTime;
 
-                if (Mathf.Abs(timeDelta) <= _badTime)
+                // 重点关注的判定条件
+                if (timeDelta < _minDeltaTime + 0.01f && _touchPos < 1.9f)
                 {
-                    // 检查音符类型逻辑
-                    bool shouldUpdate = true;
+                    // 计算动态判定阈值
+                    _badTime = (_touchPos <= 0.9f)
+                        ? JudgeControl.badTimeRange
+                        : JudgeControl.badTimeRange + (_touchPos - 0.9f) * JudgeControl.perfectTimeRange * -0.5f;
 
-                    if (_code >= 0 && _code < chartNoteSortByTime.Count)
+                    // 满足判定时间条件
+                    if (timeDelta <= _badTime)
                     {
-                        ChartNote currentBest = chartNoteSortByTime[_code];
-                        if (currentBest != null)
+                        // 处理多音符重叠情况
+                        if (note.type != 1 && note.type != 3 && _code >= 0)
                         {
-                            // 长按开始/结束音符有优先级
-                            if (currentBest.type == 2 || currentBest.type == 4)
+                            ChartNote prevNote = chartNoteSortByTime[_code];
+
+                            if (prevNote.type == 2 || prevNote.type == 4)
                             {
-                                shouldUpdate = false;
-                            }
-                            // 点击/长按音符需要比较位置
-                            else if (currentNote.type == 1 || currentNote.type == 3)
-                            {
-                                // 计算当前音符的距离分数
-                                float currentDistance = Mathf.Abs(currentNote.positionX - fingerX);
-                                if (lineControl.fingerPositionY != null && fingerIndex < lineControl.fingerPositionY.Count)
+                                if (Mathf.Abs(note.realTime - prevNote.realTime) <= 0.01f)
                                 {
-                                    currentDistance += Mathf.Abs(lineControl.fingerPositionY[fingerIndex]) / 2.2f;
+                                    // 计算当前音符综合距离
+                                    float fingerY = judgeLine.fingerPositionY[fingerIndex];
+                                    float currentDist = _touchPos + Mathf.Abs(fingerY / 2.2f);
+
+                                    // 计算前一个音符综合距离
+                                    JudgeLineControl prevLine = judgeLineControls[prevNote.judgeLineIndex];
+                                    float prevX = prevLine.fingerPositionX[fingerIndex];
+                                    float prevY = prevLine.fingerPositionY[fingerIndex];
+                                    float prevDist = Mathf.Abs(prevNote.positionX - prevX) + Mathf.Abs(prevY / 2.2f);
+
+                                    // 选择距离更近的音符
+                                    if (currentDist < prevDist)
+                                    {
+                                        _minDeltaTime = Mathf.Abs(timeDelta);
+                                        _code = index;
+                                    }
                                 }
-
-                                // 计算之前最佳音符的距离分数
-                                float bestDistance = Mathf.Abs(currentBest.positionX -
-                                    GetFingerPositionForNote(currentBest, fingerIndex));
-
-                                if (currentDistance >= bestDistance)
+                                else
                                 {
-                                    shouldUpdate = false;
+                                    _minDeltaTime = Mathf.Abs(timeDelta);
+                                    _code = index;
                                 }
                             }
                         }
-                    }
-
-                    if (shouldUpdate)
-                    {
-                        _minDeltaTime = Mathf.Abs(timeDelta);
-                        _code = index;
+                        else
+                        {
+                            _minDeltaTime = Mathf.Abs(timeDelta);
+                            _code = index;
+                        }
                     }
                 }
-
             }
         }
 
@@ -225,30 +220,20 @@ public class JudgeControl : MonoBehaviour
         if (_code >= 0 && _code < chartNoteSortByTime.Count)
         {
             ChartNote selectedNote = chartNoteSortByTime[_code];
-            if (selectedNote != null && selectedNote.type != 4)
+            var lineControl = judgeLineControls[selectedNote.judgeLineIndex];
+
+            // 根据位置确定使用上方/下方音符列表
+            var targetList = selectedNote.isAbove ?
+                lineControl.notesAbove :
+                lineControl.notesBelow;
+
+            // 标记音符为已判定
+            if (targetList != null && selectedNote.noteIndex < targetList.Count)
             {
-                // 获取对应的判定线
-                int lineIndex = selectedNote.judgeLineIndex;
-
-                if (judgeLineControls == null || lineIndex >= judgeLineControls.Count)
-                    return;
-
-                var lineControl = judgeLineControls[lineIndex];
-                if (lineControl == null) return;
-
-                // 根据位置确定使用上方/下方音符列表
-                var targetList = selectedNote.isAbove ?
-                    lineControl.notesAbove :
-                    lineControl.notesBelow;
-
-                // 标记音符为已判定
-                if (targetList != null && selectedNote.noteIndex < targetList.Count)
+                ChartNote noteToJudge = targetList[selectedNote.noteIndex];
+                if (noteToJudge != null)
                 {
-                    ChartNote noteToJudge = targetList[selectedNote.noteIndex];
-                    if (noteToJudge != null)
-                    {
-                        noteToJudge.isJudged = true;
-                    }
+                    noteToJudge.isJudged = true;
                 }
             }
         }

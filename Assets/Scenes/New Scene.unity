@@ -298,7 +298,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -551,7 +550,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 705e802c7af4cf7468a397edc0885388, type: 3}
+  m_Sprite: {fileID: 21300000, guid: af32857a46f27d549a0bb974d09d7fa2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1912,7 +1911,7 @@ MonoBehaviour:
   judgeControl: {fileID: 1142611663}
   progressControl: {fileID: 1142611665}
   levelInformation: {fileID: 1142611666}
-  chartAsset: {fileID: 4900000, guid: 5b40b5fef4aedd54cb6c904b5182f364, type: 3}
+  chartAsset: {fileID: 4900000, guid: e862ad24ce3ef23478dbcebd915c08ff, type: 3}
   Click: {fileID: 5206859143206763386, guid: 4eb1542af296543419ed21d31457e891, type: 3}
   Drag: {fileID: 533283253768445300, guid: 088becf513ccdb44e973435b870263b4, type: 3}
   Hold: {fileID: 4319876009200234758, guid: e9131c865434cf844a39d663f64049d3, type: 3}
@@ -1923,10 +1922,10 @@ MonoBehaviour:
   DragHL: {fileID: 21300000, guid: d5f742f939742cd4e8f0240b9c5ce420, type: 3}
   FlickHL: {fileID: 21300000, guid: 3981c80255cd0414bbbb6160b25741da, type: 3}
   offset: 0
-  noteScale: 1.1
+  noteScale: 1.3
   scale: 1.8
   musicVol: 1
-  speed: 5
+  speed: 6
   hitFxIsOn: 0
   aPfCisOn: 0
   judgeLineImages: []
@@ -2011,14 +2010,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 089cbcae24b77e643965e21b514ef1e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Offset: 0
-  TimeDiff: 0
-  CurTime: 0
+  e: 60
+  offset: 0
   asu: {fileID: 2140414738}
   gum: {fileID: 1142611664}
   slider: {fileID: 2119577865}
-  e: 10
-  isPlay: 0
+  isPaused: 0
 --- !u!114 &1142611666
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2137,7 +2134,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2272,7 +2268,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 1430935447
   m_SortingOrder: 50
@@ -2468,7 +2463,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2870,9 +2864,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 748e2813600c6e94bb60f57e340ba194, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 4ddf1eeb1d0298543bd7523175e43795, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.182
   m_Pitch: 1
   Loop: 0
   Mute: 0
