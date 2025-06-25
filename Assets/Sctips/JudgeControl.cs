@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class JudgeControl : MonoBehaviour
@@ -58,53 +59,47 @@ public class JudgeControl : MonoBehaviour
                 }
 
                 // 检测新的轻扫(flick)手势
-                /*if (finger.isNewFlick)
+                if (finger.isNewFlick)
                 {
                     CheckFlick(fingerIndex);
-                }*/
+                }
             }
         }
     }
 
     public void GetFingerPosition()
     {
-        // 遍历所有判定线
-        for (int lineIndex = 0; lineIndex < judgeLines.Count; lineIndex++)
+        if (judgeLines == null) return;
+
+        for (int i = 0; i < judgeLines.Count; i++)
         {
-            // 获取当前判定线控制组件
-            JudgeLineControl lineControl = judgeLineControls[lineIndex];
-            lineControl.numOfFingers = fingerManagement.fingers.Count;
+            if (judgeLineControls == null || i >= judgeLineControls.Count) continue;
+            JudgeLineControl lineControl = judgeLineControls[i];
+            List<Fingers> fingers = fingerManagement.fingers;
+            lineControl.numOfFingers = fingers.Count;
 
-            if (lineControl.fingerPositionX.Length < lineControl.numOfFingers || 
-                lineControl.fingerPositionY.Length < lineControl.numOfFingers)
+            Vector3 linePos = judgeLines[i].transform.position;
+
+            lineControl.fingerPositionX ??= new List<float>();
+            lineControl.fingerPositionX.Clear();
+
+            lineControl.fingerPositionY ??= new List<float>();
+            lineControl.fingerPositionY.Clear();
+
+            for (int j = 0; j < fingers.Count; j++)
             {
-                lineControl.fingerPositionX = new float[lineControl.numOfFingers];
-                lineControl.fingerPositionY = new float[lineControl.numOfFingers];
-            }
+                Fingers finger = fingers[j];
+                Vector2 fingerPos = finger.nowPosition;
+                float thetaRad = -lineControl.theta * Mathf.Deg2Rad;
+                float sinVal = Mathf.Sin(thetaRad);
+                float cosVal = Mathf.Cos(thetaRad);
+                float sinPos = Mathf.Sin(lineControl.theta * Mathf.Deg2Rad);
 
-            // 遍历所有手指
-            for (int fingerIndex = 0; fingerIndex < fingerManagement.fingers.Count; fingerIndex++)
-            {
-                // 获取手指位置
-                Vector2 fingerPos = fingerManagement.fingers[fingerIndex].nowPosition;
+                float deltaX = linePos.x - fingerPos.x;
+                float deltaY = linePos.y - fingerPos.y;
 
-                // 获取判定线位置和角度
-                Vector3 linePos = judgeLines[lineIndex].transform.position;
-                float theta = lineControl.theta;
-
-                // 计算角度相关值
-                float rad = theta * Mathf.Deg2Rad;
-                float sinTheta = Mathf.Sin(rad);
-                float cosTheta = Mathf.Cos(rad);
-
-                // 计算手指在判定线上的投影位置
-                lineControl.fingerPositionX[fingerIndex] =
-                    (linePos.y - fingerPos.y) * sinTheta -
-                    (linePos.x - fingerPos.x) * cosTheta;
-
-                lineControl.fingerPositionY[fingerIndex] =
-                    (linePos.x - fingerPos.x) * sinTheta -
-                    (linePos.y - fingerPos.y) * cosTheta;
+                lineControl.fingerPositionX.Add(deltaY * sinVal - deltaX * cosVal);
+                lineControl.fingerPositionY.Add(deltaX * sinPos - deltaY * cosVal);
             }
         }
     }
@@ -157,19 +152,15 @@ public class JudgeControl : MonoBehaviour
             if (index >= chartNoteSortByTime.Count) break;
 
             ChartNote currentNote = chartNoteSortByTime[index];
-            if (currentNote == null) continue;
 
             // 获取判定线控制组件
             int lineIndex = currentNote.judgeLineIndex;
 
-            if (judgeLineControls == null || lineIndex >= judgeLineControls.Count) continue;
-
             JudgeLineControl lineControl = judgeLineControls[lineIndex];
-            if (lineControl == null || lineControl.fingerPositionX == null ||
-                fingerIndex >= lineControl.fingerPositionX.Length) continue;
 
-            // 计算位置差 // Touch计算有误
-            _touchPos = Mathf.Abs(currentNote.positionX - lineControl.fingerPositionX[fingerIndex]);
+            float fingerX = lineControl.fingerPositionX[fingerIndex];
+            // 计算位置差
+            _touchPos = Mathf.Abs(currentNote.positionX - fingerX);
 
             // 跳过已判定音符
             if (currentNote.isJudged) continue;
@@ -180,34 +171,53 @@ public class JudgeControl : MonoBehaviour
             {
                 // 计算判定时间阈值
                 _badTime = (_touchPos <= 0.9f) ?
-                    perfectTimeRange :
-                    perfectTimeRange + (_touchPos - 0.9f) * goodTimeRange * v23;
+                    badTimeRange :
+                    badTimeRange + (_touchPos - 0.9f) * perfectTimeRange * v23;
 
-                // 检查是否在有效判定时间内
-                if (timeDelta <= _badTime)
+                if (Mathf.Abs(timeDelta) <= _badTime)
                 {
-                    // 处理特殊音符类型
+                    // 检查音符类型逻辑
+                    bool shouldUpdate = true;
+
                     if (_code >= 0 && _code < chartNoteSortByTime.Count)
                     {
-                        ChartNote codeNote = chartNoteSortByTime[_code];
-                        if (codeNote != null && (codeNote.type == 2 || codeNote.type == 4))
+                        ChartNote currentBest = chartNoteSortByTime[_code];
+                        if (currentBest != null)
                         {
-                            continue;
+                            // 长按开始/结束音符有优先级
+                            if (currentBest.type == 2 || currentBest.type == 4)
+                            {
+                                shouldUpdate = false;
+                            }
+                            // 点击/长按音符需要比较位置
+                            else if (currentNote.type == 1 || currentNote.type == 3)
+                            {
+                                // 计算当前音符的距离分数
+                                float currentDistance = Mathf.Abs(currentNote.positionX - fingerX);
+                                if (lineControl.fingerPositionY != null && fingerIndex < lineControl.fingerPositionY.Count)
+                                {
+                                    currentDistance += Mathf.Abs(lineControl.fingerPositionY[fingerIndex]) / 2.2f;
+                                }
+
+                                // 计算之前最佳音符的距离分数
+                                float bestDistance = Mathf.Abs(currentBest.positionX -
+                                    GetFingerPositionForNote(currentBest, fingerIndex));
+
+                                if (currentDistance >= bestDistance)
+                                {
+                                    shouldUpdate = false;
+                                }
+                            }
                         }
                     }
-                    // 更新最佳匹配音符
-                    float absTimeDelta = Mathf.Abs(timeDelta);
-                    if (absTimeDelta < _minDeltaTime)
+
+                    if (shouldUpdate)
                     {
-                        _minDeltaTime = absTimeDelta;
+                        _minDeltaTime = Mathf.Abs(timeDelta);
                         _code = index;
                     }
                 }
-                else
-                {
-                    // bad逻辑丢失
-                }
-                
+
             }
         }
 
@@ -242,5 +252,90 @@ public class JudgeControl : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void CheckFlick(int fingerIndex)
+    {
+        if (chartNoteSortByTime == null || judgeLineControls == null || fingerManagement == null)
+            return;
+
+        // 初始化索引
+        _endIndex = -1;
+
+        // 计算结束索引
+        for (int i = 0; i < chartNoteSortByTime.Count; i++)
+        {
+            ChartNote note = chartNoteSortByTime[i];
+            if (note.realTime >= nowTime + perfectTimeRange * 1.75f)
+            {
+                _endIndex = i - 1;
+                break;
+            }
+        }
+        if (_endIndex < 0) _endIndex = chartNoteSortByTime.Count - 1;
+
+        // 计算开始索引
+        _startIndex = _endIndex;
+        for (int i = _endIndex; i >= 0; i--)
+        {
+            ChartNote note = chartNoteSortByTime[i];
+            if (note.realTime <= nowTime - perfectTimeRange * 1.75f)
+            {
+                _startIndex = i + 1;
+                break;
+            }
+        }
+
+        // 重置选择状态
+        _minDeltaTime = float.MaxValue;
+        _code = -1;
+
+        // 遍历可判定范围内的音符
+        for (int index = _startIndex; index <= _endIndex; index++)
+        {
+            ChartNote note = chartNoteSortByTime[index];
+            if (note.type != 4 || note.isJudgedForFlick) continue;
+
+            // 检查时间差是否更优
+            float deltaTime = Mathf.Abs(note.realTime - nowTime);
+            if (deltaTime >= _minDeltaTime + 0.01f) continue;
+
+            // 获取对应的判定线
+            JudgeLineControl judgeLine = judgeLineControls[note.judgeLineIndex];
+
+            // 检查手指位置
+            float fingerX = judgeLine.fingerPositionX[fingerIndex];
+            if (Mathf.Abs(note.positionX - fingerX) >= 2.1f) continue;
+
+            // 更新最优选择
+            _minDeltaTime = deltaTime;
+            _code = index;
+        }
+
+        // 处理选中的音符
+        if (_code < 0 || _code >= chartNoteSortByTime.Count) return;
+
+        ChartNote selectedNote = chartNoteSortByTime[_code];
+        int noteLineIndex = selectedNote.judgeLineIndex;
+
+        JudgeLineControl targetLine = judgeLineControls[noteLineIndex];
+
+        // 获取目标音符列表
+        List<ChartNote> targetList = selectedNote.isAbove ?
+            targetLine.notesAbove : targetLine.notesBelow;
+
+        // 标记为已判定
+        ChartNote targetNote = targetList[selectedNote.noteIndex];
+        if (targetNote != null) targetNote.isJudgedForFlick = true;
+
+        // 更新手指状态
+        Fingers finger = fingerManagement.fingers[fingerIndex];
+        if (finger != null) finger.isNewFlick = false;
+    }
+
+    private float GetFingerPositionForNote(ChartNote note, int fingerIndex)
+    {
+        JudgeLineControl lineControl = judgeLineControls[note.judgeLineIndex];
+        return lineControl.fingerPositionX[fingerIndex];
     }
 }

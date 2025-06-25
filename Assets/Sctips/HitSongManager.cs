@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static E7.Native.NativeSource;
 
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
 using E7.Native;
@@ -50,9 +51,12 @@ public class HitSongManager : MonoBehaviour
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
         trackIndex = (trackIndex + 1) % 4;
         var nativeSource = NativeAudio.GetNativeSource(trackIndex);
-        nativeSource.Play(pointers[idx]);
+        nativeSource.Play(pointers[idx], new PlayOptions
+        {
+            volume = 0.2f 
+        });
 #else
-        aus.PlayOneShot(clips[idx], 1);
+        aus.PlayOneShot(clips[idx], 0.2f);
 #endif
     }
 }

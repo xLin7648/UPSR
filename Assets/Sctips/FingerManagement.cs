@@ -63,6 +63,10 @@ public class FingerManagement : MonoBehaviour
             // 重置轻扫速度
             _flickSpeed = 0f;
 
+            // 更新移动向量
+            finger.lastMove = finger.nowMove;
+            finger.nowMove = finger.nowPosition - finger.lastPosition;
+
             // 计算当前移动向量的模
             float moveMagnitude = finger.nowMove.magnitude;
 
@@ -72,7 +76,6 @@ public class FingerManagement : MonoBehaviour
                 float dotProduct = Vector2.Dot(finger.lastMove, finger.nowMove);
                 _flickSpeed = dotProduct / moveMagnitude;
             }
-
             // 计算时间调整后的速度
             float deltaTime = Time.deltaTime;
             float adjustedSpeed = (_flickSpeed / 60f) / deltaTime;

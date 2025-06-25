@@ -32,7 +32,7 @@ public class ClickControl : BaseNoteControl
 
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
-                Instantiate(hitPPrefab).transform.position = transform.position;
+                HitEffectManager.instance.Play(true, noteScale, transform);
 
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
@@ -53,7 +53,7 @@ public class ClickControl : BaseNoteControl
 
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
-                Instantiate(hitGPrefab).transform.position = transform.position;
+                HitEffectManager.instance.Play(false, noteScale, transform);
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
                 Vector3 position = transform.position;
@@ -68,9 +68,20 @@ public class ClickControl : BaseNoteControl
             // BAD ÅÐ¶¨
             else
             {
-                /*if (this.noteInfor == null) throw new NullReferenceException();
-                if (this.scoreControl == null) throw new NullReferenceException();
+                GameObject badInstance = GameObject.Instantiate(this.noteBad);
 
+                Transform badTransform = badInstance.transform;
+                Transform thisTransform = this.transform;
+
+                badTransform.parent = thisTransform.parent;
+                badTransform.localScale = thisTransform.localScale;
+
+                Vector3 spawnPosition = thisTransform.position + new Vector3(0, 0, 1);
+                badTransform.SetPositionAndRotation(
+                    spawnPosition,
+                    thisTransform.rotation
+                );
+                /*
                 this.scoreControl.Bad(this.noteInfor.noteCode, -timeDiff);
 
                 if (this.noteBad == null) throw new NullReferenceException();

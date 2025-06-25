@@ -35,6 +35,9 @@ public class ProgressControl : MonoBehaviour
             yield return null;
         }
 
+        asu.time = e;
+        CurTime = e;
+
         isPlay = true;
         PreviDirty = false;
         TimeDiff = Time.time - asu.time;

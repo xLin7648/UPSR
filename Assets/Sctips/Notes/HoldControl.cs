@@ -1,9 +1,11 @@
 ﻿// Namespace: 
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
 {
-	public float[] FingerPositionX; // 0x50
+	public List<float> FingerPositionX; // 0x50
 	public GameObject holdHead; // 0x60
 	public GameObject holdEnd; // 0x68
 	public GameObject perfect; // 0x70
@@ -136,12 +138,7 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             timeOfJudge >= (0.5f * (60f / GetBPM()) - 0.00001f) &&
             judged && !missed)
         {
-            /*GameObject effectPrefab = isPerfect ? perfectEffect : goodEffect;
-            GameObject effect = Instantiate(effectPrefab);
-
-            // 设置效果位置和缩放
-            effect.transform.position = transform.position + Vector3.back;
-            effect.transform.localScale = Vector3.one * (scale * 1.35f);*/
+            HitEffectManager.instance.Play(isPerfect, noteScale, transform);
 
             timeOfJudge = 0;
         }
@@ -184,6 +181,147 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
 
     public override bool Judge()
     {
+        if (noteInfor == null || progressControl == null || judgeLine == null)
+            return false;
+
+        // 长按开始判定
+        if (!judged && !missed)
+        {
+            // 获取目标音符列表
+            List<ChartNote> targetList = noteInfor.isAbove ? judgeLine.notesAbove : judgeLine.notesBelow;
+            if (targetList != null && noteInfor.noteIndex < targetList.Count)
+            {
+                ChartNote targetNote = targetList[noteInfor.noteIndex];
+                if (targetNote != null && targetNote.isJudged)
+                {
+                    isJudged = true;
+                }
+            }
+
+            // 时间差计算
+            float deltaTime = noteInfor.realTime - progressControl.nowTime;
+            float absDelta = Mathf.Abs(deltaTime);
+
+            // 完美/良好判定
+            if (isJudged)
+            {
+                float perfectRange = JudgeControl.perfectTimeRange;
+                float goodRange = JudgeControl.goodTimeRange;
+
+                if (absDelta < perfectRange)
+                {
+                    // 完美判定
+                    judged = true;
+                    HitSongManager.instance.Play(0);
+                    isPerfect = true;
+
+                    HitEffectManager.instance.Play(true, noteScale, transform);
+                }
+                else if (absDelta < goodRange)
+                {
+                    // 良好判定
+                    judged = true;
+                    HitSongManager.instance.Play(0);
+                    isPerfect = false;
+
+                    HitEffectManager.instance.Play(false, noteScale, transform);
+                }
+                else
+                {
+                    // 超出判定范围，重置状态
+                    if (targetList != null && noteInfor.noteIndex < targetList.Count)
+                    {
+                        ChartNote targetNote = targetList[noteInfor.noteIndex];
+                        if (targetNote != null) targetNote.isJudged = false;
+                    }
+                    missed = true;
+                }
+            }
+            // 过早判定
+            else if (deltaTime < -JudgeControl.goodTimeRange)
+            {
+                // 标记为已判定
+                if (targetList != null && noteInfor.noteIndex < targetList.Count)
+                {
+                    ChartNote targetNote = targetList[noteInfor.noteIndex];
+                    if (targetNote != null) targetNote.isJudged = true;
+                }
+
+                missed = true;
+                /*if (scoreControl != null)
+                {
+                    scoreControl.Miss(noteInfor.noteCode);
+                }*/
+            }
+        }
+
+        // 长按持续判定
+        if (judged && !missed && !judgeOver)
+        {
+            FingerPositionX = judgeLine.fingerPositionX;
+            int numOfFingers = judgeLine.numOfFingers;
+            bool fingerOnTrack = false;
+
+            if (FingerPositionX != null)
+            {
+                for (int i = 0; i < numOfFingers && i < FingerPositionX.Count; i++)
+                {
+                    float distance = Mathf.Abs(FingerPositionX[i] - noteInfor.positionX);
+                    if (distance < 1.9f)
+                    {
+                        fingerOnTrack = true;
+                        _safeFrame = 2;
+                        break;
+                    }
+                }
+            }
+
+            if (!fingerOnTrack)
+            {
+                if (_safeFrame > 0)
+                {
+                    _safeFrame--;
+                    missed = false;
+                }
+                else
+                {
+                    judgeOver = true;
+                    missed = true;
+                    /*if (scoreControl != null)
+                    {
+                        scoreControl.Miss(noteInfor.noteCode);
+                    }*/
+                }
+            }
+        }
+
+        // 长按结束判定
+        float holdEndTime = noteInfor.realTime + noteInfor.holdTime;
+        if (judged && !judgeOver && holdEndTime - 0.22f < progressControl.nowTime)
+        {
+            Vector3 position = transform.position;
+            /*if (isPerfect)
+            {
+                scoreControl.Perfect(noteInfor.noteCode, -_judgeTime, position, 1);
+            }
+            else
+            {
+                scoreControl.Good(noteInfor.noteCode, -_judgeTime, position, 1);
+            }*/
+            judgeOver = true;
+        }
+
+        // 长按超时判定
+        if (holdEndTime + 0.25f < progressControl.nowTime && !judged && !missed && !judgeOver)
+        {
+            /*if (scoreControl != null)
+            {
+                scoreControl.Miss(noteInfor.noteCode);
+            }*/
+            missed = true;
+            return true;
+        }
+
         return false;
     }
 }

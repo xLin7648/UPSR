@@ -117,6 +117,6 @@ MonoBehaviour:
     noteIndex: 0
     noteCode: 0
   isVisible: 0
-  noteBad: {fileID: 0}
+  noteBad: {fileID: 5206859143206763386, guid: c25834c38daacc9468fc2bb96ed0c30f, type: 3}
   noteScale: 0
   spriteRenderer: {fileID: 5206859143206763388}

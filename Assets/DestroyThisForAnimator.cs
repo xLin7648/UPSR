@@ -6,6 +6,6 @@ public class DestroyThisForAnimator : StateMachineBehaviour
 {
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        Destroy(animator.gameObject);
+        HitEffectManager.instance.pool.Release(animator.GetComponent<SpriteRenderer>());
     }
 }

@@ -31,8 +31,8 @@ public class JudgeLineControl : MonoBehaviour
     public List<JudgeLineEvent> judgeLineMoveEvents; // 0xB0
     public List<JudgeLineEvent> judgeLineRotateEvents; // 0xB8
     public List<SpeedEvent> speedEvents; // 0xC0
-    public float[] fingerPositionX = new float[10]; // 0xD0
-    public float[] fingerPositionY = new float[10]; // 0xD8
+    public List<float> fingerPositionX; // 0xD0
+    public List<float> fingerPositionY; // 0xD8
     public int numOfFingers; // 0xE0
     private int nowSpeedIndex; // 0xE4
     private int nowDisappearIndex; // 0xE8
@@ -306,24 +306,6 @@ public class JudgeLineControl : MonoBehaviour
                 );
 
                 transform.localPosition = new Vector3(posX, posY, 0.0f);
-            }
-
-            // 更新判定线旋转
-            if (judgeLineRotateEvents != null)
-            {
-                JudgeLineEvent rotateEvent = judgeLineRotateEvents[nowRotateIndex];
-
-                theta = Mathf.Lerp(
-                    rotateEvent.start,
-                    rotateEvent.end,
-                    Mathf.InverseLerp(
-                        rotateEvent.startTime,
-                        rotateEvent.endTime,
-                        nowTime
-                    )
-                );
-
-                transform.localRotation = Quaternion.AngleAxis(theta, Vector3.forward);
             }
 
             // 更新判定线旋转
