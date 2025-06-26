@@ -25,6 +25,8 @@ public class DragControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
                 return true;
             }
             return false;
@@ -70,6 +72,8 @@ public class DragControl : BaseNoteControl
 
             HitEffectManager.instance.Play(true, noteScale, transform);
 
+            ScoreManager.instance.Hit();
+
             // 记录完美判定
             /*if (scoreControl != null && noteInfor != null)
             {
@@ -86,6 +90,8 @@ public class DragControl : BaseNoteControl
             {
                 scoreControl.Miss(noteInfor.noteCode);
             }*/
+
+            ScoreManager.instance.Miss();
 
             return true;
         }

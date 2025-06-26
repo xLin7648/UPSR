@@ -20,6 +20,8 @@ public class FlickControl : BaseNoteControl // TypeDefIndex: 7910
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
                 return true;
             }
             return false;
@@ -57,6 +59,8 @@ public class FlickControl : BaseNoteControl // TypeDefIndex: 7910
 
             HitEffectManager.instance.Play(true, noteScale, transform);
 
+            ScoreManager.instance.Hit();
+
             // 标记该音符为已判定
             MarkNoteAsJudged(noteInfor.judgeLineIndex, noteInfor.noteIndex);
 
@@ -69,6 +73,8 @@ public class FlickControl : BaseNoteControl // TypeDefIndex: 7910
         {
             // Miss处理
             // scoreControl.Miss(noteInfor.noteCode);
+
+            ScoreManager.instance.Miss();
 
             // 标记该音符为已判定
             MarkNoteAsJudged(noteInfor.judgeLineIndex, noteInfor.noteIndex);

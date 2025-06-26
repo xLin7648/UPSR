@@ -210,6 +210,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 if (judged && !judgeOver && het < progressControl.nowTime)
                 {
                     judgeOver = true;
+
+                    ScoreManager.instance.Hit();
                     return true;
                 }
             }
@@ -280,6 +282,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 }
 
                 missed = true;
+
+                ScoreManager.instance.Miss();
                 /*if (scoreControl != null)
                 {
                     scoreControl.Miss(noteInfor.noteCode);
@@ -319,6 +323,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 {
                     judgeOver = true;
                     missed = true;
+
+                    ScoreManager.instance.Miss();
                     /*if (scoreControl != null)
                     {
                         scoreControl.Miss(noteInfor.noteCode);
@@ -341,6 +347,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 scoreControl.Good(noteInfor.noteCode, -_judgeTime, position, 1);
             }*/
             judgeOver = true;
+
+            ScoreManager.instance.Hit();
         }
 
         // 长按超时判定
@@ -350,6 +358,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             {
                 scoreControl.Miss(noteInfor.noteCode);
             }*/
+
+            ScoreManager.instance.Miss();
             missed = true;
             return true;
         }

@@ -31,6 +31,8 @@ public class ClickControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
                 return true;
             }
             return false;
@@ -50,6 +52,8 @@ public class ClickControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
 
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
@@ -71,6 +75,8 @@ public class ClickControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(false, noteScale, transform);
+
+                ScoreManager.instance.Hit();
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
                 Vector3 position = transform.position;
@@ -98,6 +104,8 @@ public class ClickControl : BaseNoteControl
                     spawnPosition,
                     thisTransform.rotation
                 );
+
+                ScoreManager.instance.Miss();
                 /*
                 this.scoreControl.Bad(this.noteInfor.noteCode, -timeDiff);
 
@@ -130,6 +138,8 @@ public class ClickControl : BaseNoteControl
             /*if (this.scoreControl == null) throw new NullReferenceException();
 
             this.scoreControl.Miss(this.noteInfor.noteCode);*/
+
+            ScoreManager.instance.Miss();
 
             // ¸üÐÂÒô·ûÅÐ¶¨×´Ì¬
             noteInfor.isJudged = true;
