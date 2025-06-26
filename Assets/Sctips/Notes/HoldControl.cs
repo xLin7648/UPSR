@@ -149,6 +149,7 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             var fadedColor = new Color(1, 1, 1, 0.45f);
             holdSpriteRenderer.color = fadedColor;
             holdEndSpriteRenderer1.color = fadedColor;
+            holdHeadSpriteRenderer.color = fadedColor;
         }
     }
 
@@ -181,8 +182,39 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
 
     public override bool Judge()
     {
-        if (noteInfor == null || progressControl == null || judgeLine == null)
+        if (GameUpdateManager.instance.AUTO_PLAY)
+        {
+            float timeDiff = noteInfor.realTime - progressControl.nowTime;
+
+            // PERFECT 判定
+            if (timeDiff <= 0)
+            {
+                if (!isJudged)
+                {
+                    judged = true;
+                    isJudged = true;
+                    isPerfect = true;
+
+                    HitSongManager.instance.Play(0);
+                    Transform transform = this.transform;
+
+                    transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
+
+                    HitEffectManager.instance.Play(true, noteScale, transform);
+
+                    return false;
+                }
+
+                var het = noteInfor.realTime + noteInfor.holdTime;
+
+                if (judged && !judgeOver && het < progressControl.nowTime)
+                {
+                    judgeOver = true;
+                    return true;
+                }
+            }
             return false;
+        }
 
         // 长按开始判定
         if (!judged && !missed)
@@ -199,8 +231,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             }
 
             // 时间差计算
-            float deltaTime = noteInfor.realTime - progressControl.nowTime;
-            float absDelta = Mathf.Abs(deltaTime);
+            float timeDiff = noteInfor.realTime - progressControl.nowTime;
+            float absDelta = Mathf.Abs(timeDiff);
 
             // 完美/良好判定
             if (isJudged)
@@ -238,7 +270,7 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 }
             }
             // 过早判定
-            else if (deltaTime < -JudgeControl.goodTimeRange)
+            else if (timeDiff < -JudgeControl.goodTimeRange)
             {
                 // 标记为已判定
                 if (targetList != null && noteInfor.noteIndex < targetList.Count)

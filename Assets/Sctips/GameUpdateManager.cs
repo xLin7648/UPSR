@@ -5,9 +5,14 @@ using UnityEngine;
 
 public class GameUpdateManager : MonoBehaviour
 {
+    public bool AUTO_PLAY;
+
+    public static GameUpdateManager instance;
+
     // Fields
     public LevelInformation levelInformation; // 0x18
     public JudgeControl judgeControl; // 0x20
+    public FingerManagement fingerManagement; // 0x20
     public ProgressControl progressControl; // 0x28
 
     public List<ClickControl> clickControls; // 0x30
@@ -20,6 +25,11 @@ public class GameUpdateManager : MonoBehaviour
     public List<HoldControl> holdControlsBK; // 0x40
     public List<FlickControl> flickControlsBK; // 0x48
     private int i; // 0x50
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     public void BackupControls()
     {

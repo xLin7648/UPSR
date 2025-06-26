@@ -20,7 +20,7 @@ public class ProgressControl : MonoBehaviour
                 }
                 else
                 {
-                    return (GetCurrentUnixTimeMillis() - this.startTime.Value) * 1 / 1000f;
+                    return (GetTime() - this.startTime.Value) * 1 / 1000f;
                 }
             }
             else
@@ -30,8 +30,8 @@ public class ProgressControl : MonoBehaviour
         }
     }
 
-    public long? startTime;
-    public long? pauseTime;
+    public float? startTime;
+    public float? pauseTime;
 
 
     public AudioSource asu;
@@ -42,13 +42,9 @@ public class ProgressControl : MonoBehaviour
 
     private bool PreviDirty;
 
-    private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-    public static long GetCurrentUnixTimeMillis()
+    public static float GetTime()
     {
-        // 计算当前 UTC 时间与 Unix 纪元的时间差
-        TimeSpan timeSpan = DateTime.UtcNow - UnixEpoch;
-        return (long)timeSpan.TotalMilliseconds;
+        return Time.time * 1000;
     }
 
     public void Play()
@@ -69,7 +65,7 @@ public class ProgressControl : MonoBehaviour
 
         asu.time = e;
 
-        startTime = GetCurrentUnixTimeMillis() + Moffset - e * 1000;
+        startTime = GetTime() + Moffset - e * 1000;
         isPaused = false;
         PreviDirty = false;
     }
@@ -78,23 +74,17 @@ public class ProgressControl : MonoBehaviour
     {
         if (isPaused) return;
 
-        /*var AuTime = asu.time;
+        var AuTime = asu.time;
 
-        if (Mathf.Abs(AuTime - CurTime) >= 0.1f) // 100ms
+        var nowTime = this.nowTime;
+
+        if (Mathf.Abs(AuTime - nowTime) >= 0.1f) // 100ms
         {
-            Debug.Log($"AuTime: {AuTime}, Time: {CurTime}");
+            Debug.Log($"AuTime: {AuTime}, Time: {nowTime}");
 
-            // 计算时间差值
-            TimeDiff = Time.time - AuTime;
-
-            timeBgm = (DateTime.UtcNow.Millisecond - TimeDiff) / 1e3f + curTime;
-
-            CurTime = AuTime;
+            Pause();
+            Pause();
         }
-        else
-        {
-            CurTime = Time.time - TimeDiff;
-        }*/
 
         slider.SetValueWithoutNotify(nowTime / asu.clip.length);
     }
@@ -132,12 +122,13 @@ public class ProgressControl : MonoBehaviour
 
         if (this.isPaused)
         {
-            this.pauseTime = GetCurrentUnixTimeMillis();
+            // 时间 + 音频和谱面的偏移
+            this.pauseTime = GetTime() + Mathf.Abs(asu.time - nowTime) * 1000;
             asu.Pause();
         }
         else
         {
-            this.startTime = GetCurrentUnixTimeMillis() - (this.pauseTime - this.startTime) + this.Moffset;
+            this.startTime = GetTime() - (this.pauseTime - this.startTime) + this.Moffset;
             this.pauseTime = null;
 
             asu.Play();

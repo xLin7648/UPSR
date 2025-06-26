@@ -19,6 +19,23 @@ public class ClickControl : BaseNoteControl
         // 计算时间差
         float timeDiff = noteInfor.realTime - this.progressControl.nowTime;
 
+        if (GameUpdateManager.instance.AUTO_PLAY)
+        {
+            // PERFECT 判定
+            if (timeDiff <= 0)
+            {
+                isJudged = true;
+                HitSongManager.instance.Play(0);
+                Transform transform = this.transform;
+
+                transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
+
+                HitEffectManager.instance.Play(true, noteScale, transform);
+                return true;
+            }
+            return false;
+        }
+
         // 已判定音符的处理
         if (this.isJudged)
         {

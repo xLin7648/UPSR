@@ -10,6 +10,7 @@ public class HitEffectManager : MonoBehaviour
     public static HitEffectManager instance;
 
     public GameObject hitPrefab;
+    public Transform hitParent;
 
     public Color32 PerfactColor;
     public Color32 GoodColor;
@@ -39,7 +40,7 @@ public class HitEffectManager : MonoBehaviour
     }
 
     private SpriteRenderer CreatePooledItem() =>
-        Instantiate(hitPrefab).GetComponent<SpriteRenderer>();
+        Instantiate(hitPrefab, hitParent).GetComponent<SpriteRenderer>();
 
     public void Play(bool isPerfact, float noteScale, Transform noteTrans)
     {
