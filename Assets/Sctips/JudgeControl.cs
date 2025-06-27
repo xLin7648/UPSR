@@ -37,7 +37,7 @@ public class JudgeControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (progressControl.isPaused) return;
+        if (progressControl.status != TimerState.Running) return;
 
         // 获取当前游戏时间
         float currentTime = progressControl.nowTime;

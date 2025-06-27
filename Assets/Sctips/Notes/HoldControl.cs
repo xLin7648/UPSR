@@ -1,4 +1,5 @@
 ﻿// Namespace: 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -19,7 +20,6 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
 	private bool judged; // 0x86
 	private bool judgeOver; // 0x87
 	private bool isPerfect; // 0x88
-	private bool _holdHeadIsDestroyed; // 0xA8
 	private int _safeFrame; // 0xAC
 	private float _judgeTime; // 0xB0
 
@@ -54,20 +54,39 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
         SetHoldScale(noteInfor.holdTime);
     }
 
-    public override void NoteReset()
+    public override bool NoteReset()
     {
         SetScale();
+
+        _safeFrame = 2;
+        timeOfJudge = 0;
+
+        var result = noteInfor.time <= progressControl.nowTime;
+
+        if (result)
+        {
+            judged = true;
+            isJudged = true;
+            judgeOver = true;
+            missed = true;
+        }
+        else
+        {
+            missed = false;
+            judged = false;
+            isJudged = false;
+            judgeOver = false;
+        }
+        
+        isPerfect = false;
         NoteMove();
 
         holdHeadSpriteRenderer.color = Color.white;
         holdSpriteRenderer.color = Color.white;
         holdEndSpriteRenderer1.color = Color.white;
 
-        holdHead.transform.localPosition = Vector3.zero;
-        _holdHeadIsDestroyed = false;
 
-        transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
-        gameObject.SetActive(true);
+        return result;
     }
 
     public override void NoteMove()
@@ -77,7 +96,7 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
         
         float holdEndTime = noteTime + noteInfor.holdTime;
 
-        if (noteTime >= currentTime)
+        if (currentTime < noteTime)
         {
             // 音符尚未到达判定时间
             int lineIndex = noteInfor.judgeLineIndex;
@@ -103,15 +122,17 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                     );
                 }
             }
+
+            // 隐藏音符头部
+            holdHead.transform.localPosition = Vector3.zero;
         }
-        else if (!_holdHeadIsDestroyed)
+        else
         {
             var oldPos = transform.localPosition;
             oldPos.y = 0;
             transform.localPosition = oldPos;
 
             // 隐藏音符头部
-            _holdHeadIsDestroyed = true;
             holdHead.transform.localPosition = Vector3.forward * -100000f;
         }
 
@@ -119,10 +140,16 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
         if (holdEndTime <= currentTime)
         {
             // 长按音符已结束
-            transform.localPosition = new Vector3(0, 0, -50);
+            var tempPos = transform.localPosition;
+            tempPos.z = -15;
+            transform.localPosition = tempPos;
         }
         else
         {
+            var tempPos = transform.localPosition;
+            tempPos.z = 0;
+            transform.localPosition = tempPos;
+
             if (noteTime >= currentTime)
             {
                 SetHoldScale(noteInfor.holdTime);
@@ -216,6 +243,12 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
                 }
             }
             return false;
+        }
+
+        // 调整时间的跳过
+        if (judged && isJudged && missed && judgeOver)
+        {
+            return true;
         }
 
         // 长按开始判定

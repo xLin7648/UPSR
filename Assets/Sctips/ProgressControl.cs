@@ -1,137 +1,205 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum TimerState
+{
+    Running = 0,
+    Pause = 1,
+    Stop = 2
+}
+
 public class ProgressControl : MonoBehaviour
 {
-    public int e;
     public float offset;
-    public int Moffset { get => (int)(offset * 1000); }
-
-    public float nowTime {
-        get {
-            if (this.startTime.HasValue)
-            {
-                if (this.pauseTime.HasValue)
-                {
-                    return (this.pauseTime.Value - this.startTime.Value) * 1 / 1000f;
-                }
-                else
-                {
-                    return (GetTime() - this.startTime.Value) * 1 / 1000f;
-                }
-            }
-            else
-            {
-                return 0;
-            }
-        }
-    }
-
-    public float? startTime;
-    public float? pauseTime;
-
-
-    public AudioSource asu;
-    public GameUpdateManager gum;
     public Slider slider;
-
-    public bool isPaused;
+    public AudioSource audioSource;
+    public GameUpdateManager gameUpdateManager;
+    public TimerState status { get; private set; } = TimerState.Stop;
 
     private bool PreviDirty;
-
-    public static float GetTime()
-    {
-        return Time.time * 1000;
-    }
+    private float startTime = float.NaN;
+    private float pausedTime = float.NaN;
+    private float _speed = 1f;
+    private float _lastSpeedChangedProgress = 0f;
 
     public void Play()
     {
-        if (startTime.HasValue) return;
+        gameUpdateManager.BK();
         StartCoroutine(PlayM());
-    }
 
-    IEnumerator PlayM()
-    {
-        gum.BackupControls();
-        var aust = AudioSettings.dspTime + 3.0f;
-        asu.PlayScheduled(aust);
-
-        while (AudioSettings.dspTime < aust) {
-            yield return null;
-        }
-
-        asu.time = e;
-
-        startTime = GetTime() + Moffset - e * 1000;
-        isPaused = false;
-        PreviDirty = false;
-    }
-
-    private void Check()
-    {
-        if (isPaused) return;
-
-        var AuTime = asu.time;
-
-        var nowTime = this.nowTime;
-
-        if (Mathf.Abs(AuTime - nowTime) >= 0.1f) // 100ms
+        IEnumerator PlayM()
         {
-            Debug.Log($"AuTime: {AuTime}, Time: {nowTime}");
+            var aust = AudioSettings.dspTime + 3.0f;
+            audioSource.PlayScheduled(aust);
 
-            Pause();
-            Pause();
-        }
+            while (AudioSettings.dspTime < aust)
+            {
+                yield return null;
+            }
 
-        slider.SetValueWithoutNotify(nowTime / asu.clip.length);
-    }
+            if (status == TimerState.Pause)
+            {
+                startTime = Time.time - (pausedTime - startTime);
+            }
+            else
+            {
+                startTime = Time.time;
+            }
 
-    public void SetSlider(float value)
-    {
-        Pause();
-
-        var newTime = value * asu.clip.length;
-
-        if (newTime <= nowTime && !PreviDirty)
-        {
-            gum.ResetControls();
-            gum.ResetNotesScore();
-            PreviDirty = true;
-        }
-        else
-        {
+            status = TimerState.Running;
+            pausedTime = float.NaN;
             PreviDirty = false;
         }
-
-        asu.time = newTime;
-    }
-
-    private void Update()
-    {
-        Check();
     }
 
     public void Pause()
     {
-        if (!startTime.HasValue) return;
-
-        this.isPaused = !this.isPaused;
-
-        if (this.isPaused)
+        if (status == TimerState.Running)
         {
-            // 时间 + 音频和谱面的偏移
-            this.pauseTime = GetTime() + Mathf.Abs(asu.time - nowTime) * 1000;
-            asu.Pause();
+            pausedTime = Time.time;
+            status = TimerState.Pause;
+            audioSource.Pause();
         }
-        else
+        else if (status == TimerState.Pause)
         {
-            this.startTime = GetTime() - (this.pauseTime - this.startTime) + this.Moffset;
-            this.pauseTime = null;
+            gameUpdateManager.RBK();
 
-            asu.Play();
+            startTime = Time.time - (pausedTime - startTime);
+            pausedTime = float.NaN;
+            status = TimerState.Running;
+            audioSource.Play();
         }
+    }
+
+    public void Stop()
+    {
+        if (status == TimerState.Stop) return;
+
+        startTime = float.NaN;
+        pausedTime = float.NaN;
+        _lastSpeedChangedProgress = 0f;
+        status = TimerState.Stop;
+        audioSource.Stop();
+    }
+
+    // 修复后的Seek方法
+    public void Seek(float targetTime)
+    {
+        if (status == TimerState.Stop) return;
+
+        // 计算当前时间与目标时间的差值
+        float currentTime = this.time;
+        float timeDifference = targetTime - currentTime;
+
+        // 直接调整起始时间点
+        if (status == TimerState.Running)
+        {
+            startTime -= timeDifference / _speed;
+        }
+        else if (status == TimerState.Pause)
+        {
+            // 对于暂停状态，调整累计进度
+            _lastSpeedChangedProgress += timeDifference;
+        }
+
+        // 设置音频时间
+        audioSource.time = targetTime;
+    }
+
+    public void SetSlider(float value)
+    {
+        pausedTime = Time.time;
+        status = TimerState.Pause;
+        audioSource.Pause();
+
+        var newTime = value * audioSource.clip.length;
+
+        if (newTime <= time)
+        {
+            if (newTime <= time && !PreviDirty)
+            {
+                PreviDirty = true;
+            }
+            else
+            {
+                PreviDirty = false;
+            }
+        }
+
+        Seek(newTime);
+    }
+
+    private void Update()
+    {
+        if (status != TimerState.Running) return;
+
+        var auTime = audioSource.time;
+        var nowTime = this.time;
+
+        // 添加时间差阈值检测
+        if (Mathf.Abs(auTime - nowTime) >= 0.1f)
+        {
+            if (auTime == 0 && !audioSource.isPlaying)
+            {
+                Stop();
+                Debug.Log("PLAY END");
+            }
+            else
+            {
+                Debug.Log($"矫正时间: AuTime={auTime}, TimerTime={nowTime}");
+                Seek(auTime);
+            }
+        }
+
+        slider.SetValueWithoutNotify(auTime / audioSource.clip.length);
+    }
+
+    public float speed
+    {
+        get => _speed;
+        set
+        {
+            if (status != TimerState.Stop)
+            {
+                float currentTime = (status == TimerState.Running) ? Time.time : pausedTime;
+                _lastSpeedChangedProgress += (currentTime - startTime) * _speed;
+            }
+
+            startTime = Time.time;
+            if (status == TimerState.Pause) pausedTime = Time.time;
+            _speed = VerifyNum(value);
+            audioSource.pitch = _speed;
+        }
+    }
+
+    public float nowTime => time - offset;
+
+    private float time
+    {
+        get
+        {
+            if (status == TimerState.Running)
+            {
+                return (Time.time - startTime) * _speed + _lastSpeedChangedProgress;
+            }
+            else if (status == TimerState.Pause)
+            {
+                return (pausedTime - startTime) * _speed + _lastSpeedChangedProgress;
+            }
+            else
+            {
+                return float.NaN;
+            }
+        }
+    }
+
+    private float VerifyNum(float value)
+    {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+        {
+            throw new System.ArgumentException("Invalid number value");
+        }
+        return value;
     }
 }

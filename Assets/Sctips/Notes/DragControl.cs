@@ -7,8 +7,11 @@ public class DragControl : BaseNoteControl
 
     public override bool Judge()
     {
-        if (noteInfor == null || progressControl == null)
-            return false;
+        // 调整时间的跳过
+        if (isJudged)
+        {
+            return true;
+        }
 
         float timeDiff = noteInfor.realTime - progressControl.nowTime;
         float absDelta = Mathf.Abs(timeDiff);

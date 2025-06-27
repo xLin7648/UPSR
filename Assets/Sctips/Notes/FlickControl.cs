@@ -6,6 +6,12 @@ public class FlickControl : BaseNoteControl // TypeDefIndex: 7910
 {
     public override bool Judge()
     {
+        // 调整时间的跳过
+        if (isJudged)
+        {
+            return true;
+        }
+
         float timeDiff = noteInfor.realTime - progressControl.nowTime;
 
         if (GameUpdateManager.instance.AUTO_PLAY)

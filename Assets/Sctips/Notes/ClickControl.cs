@@ -7,6 +7,12 @@ public class ClickControl : BaseNoteControl
 {
     public override bool Judge()
     {
+        // 调整时间的跳过
+        if (isJudged)
+        {
+            return true;
+        }
+
         // 获取音符信息
         ChartNote noteInfor = this.noteInfor;
 
