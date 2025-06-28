@@ -16,8 +16,8 @@ public class C : MonoBehaviour
         var min = (byte)(value * (255 - jg * 2f) + jg);
         var max = (byte)(min + jg);
 
-        center.color = new Color32(max, max, max, 255);
-        left.color = right.color = new Color32(min, min, min, 255);
+        center.color = new Color32(min, min, min, 255);
+        left.color = right.color = new Color32(max, max, max, 255);
     }
 
     float remap(float x, float t1, float t2, float s1, float s2)

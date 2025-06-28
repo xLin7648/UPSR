@@ -29,7 +29,7 @@ public abstract class BaseNoteControl : MonoBehaviour
     public virtual void SetScale()
     {
         var noteTransform = transform;
-        Vector3 scale = noteTransform.localScale;
+        Vector3 scale = new Vector3(0.22f, 0.22f, 0);
         float aspectRatio = (float)Screen.width / Screen.height;
 
         float finalScale = aspectRatio >= 1.7778f
@@ -39,38 +39,41 @@ public abstract class BaseNoteControl : MonoBehaviour
         noteTransform.localScale = scale * finalScale;
     }
 
-    public virtual void NoteReset()
+    public virtual bool NoteReset()
     {
         SetScale();
+
+        var result = noteInfor.time <= progressControl.nowTime;
+
+        if (result)
+        {
+            isJudged = true;
+        }
+        else
+        {
+            isJudged = false;
+        }
+
         NoteMove();
 
-        spriteRenderer.color = Color.white;
-        transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
-        gameObject.SetActive(true);
+        return result;
     }
 
     public virtual void NoteMove()
     {
-        ChartNote noteInfor = this.noteInfor;
-        if (noteInfor == null) return;
+        Transform transform = base.transform;
 
+        ChartNote noteInfor = this.noteInfor;
         int judgeLineIndex = judgeLine.index;
+        float positionX = noteInfor.positionX;
+        float targetFloor = levelInformation.floorPositions[judgeLineIndex];
+        float noteSpeed = noteInfor.speed;
+        float currentFloor = noteInfor.floorPosition;
+        float globalSpeed = LevelInformation.speed;
 
         // 上方轨道音符位置计算
         if (noteInfor.isAbove)
         {
-            Transform transform = base.transform;
-            float positionX = noteInfor.positionX;
-            float[] floorPositions = levelInformation.floorPositions;
-
-            if (judgeLineIndex < 0 || judgeLineIndex >= floorPositions.Length)
-                throw new IndexOutOfRangeException();
-
-            float targetFloor = floorPositions[judgeLineIndex];
-            float noteSpeed = noteInfor.speed;
-            float currentFloor = noteInfor.floorPosition;
-            float globalSpeed = LevelInformation.speed;
-
             // 计算Y轴位置
             float positionY = (currentFloor - targetFloor) * noteSpeed * globalSpeed;
             transform.localPosition = new Vector3(positionX, positionY, 0);
@@ -78,18 +81,6 @@ public abstract class BaseNoteControl : MonoBehaviour
         // 下方轨道音符位置计算
         else
         {
-            Transform transform = base.transform;
-            float positionX = noteInfor.positionX;
-            float[] floorPositions = levelInformation.floorPositions;
-
-            if (judgeLineIndex < 0 || judgeLineIndex >= floorPositions.Length)
-                throw new IndexOutOfRangeException();
-
-            float targetFloor = floorPositions[judgeLineIndex];
-            float noteSpeed = noteInfor.speed;
-            float currentFloor = noteInfor.floorPosition;
-            float globalSpeed = LevelInformation.speed;
-
             // 计算Y轴位置
             float positionY = -(currentFloor - targetFloor) * noteSpeed * globalSpeed;
             transform.localPosition = new Vector3(positionX, positionY, 0);
@@ -102,6 +93,10 @@ public abstract class BaseNoteControl : MonoBehaviour
             float alpha = Mathf.Clamp01(1.0f - (timeDiff / 0.18f));
 
             spriteRenderer.color = new Color(1, 1, 1, alpha);
+        }
+        else
+        {
+            spriteRenderer.color = Color.white;
         }
         
     }

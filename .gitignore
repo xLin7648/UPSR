@@ -9,3 +9,4 @@ ProjectSettings/ProjectVersion.txt
 Packages/packages-lock.json
 Packages/manifest.json
 Assembly-CSharp.csproj
+*.csproj

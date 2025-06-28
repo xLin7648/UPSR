@@ -5,9 +5,14 @@ using UnityEngine;
 
 public class GameUpdateManager : MonoBehaviour
 {
+    public bool AUTO_PLAY;
+
+    public static GameUpdateManager instance;
+
     // Fields
     public LevelInformation levelInformation; // 0x18
     public JudgeControl judgeControl; // 0x20
+    public FingerManagement fingerManagement; // 0x20
     public ProgressControl progressControl; // 0x28
 
     public List<ClickControl> clickControls; // 0x30
@@ -21,7 +26,12 @@ public class GameUpdateManager : MonoBehaviour
     public List<FlickControl> flickControlsBK; // 0x48
     private int i; // 0x50
 
-    public void BackupControls()
+    private void Awake()
+    {
+        instance = this;
+    }
+
+    public void BK()
     {
         clickControlsBK = clickControls.ToList();
         dragControlsBK = dragControls.ToList();
@@ -29,7 +39,7 @@ public class GameUpdateManager : MonoBehaviour
         flickControlsBK = flickControls.ToList();
     }
 
-    public void ResetControls()
+    public void RBK()
     {
         clickControls = clickControlsBK.ToList();
         dragControls = dragControlsBK.ToList();
@@ -37,20 +47,103 @@ public class GameUpdateManager : MonoBehaviour
         flickControls = flickControlsBK.ToList();
     }
 
-    public void ResetNotesScore()
+    public void UpdateNoteControlsE<T>(List<T> baseNoteControls)
+        where T : BaseNoteControl
     {
-        ResetNoteScore(clickControls);
-        ResetNoteScore(dragControls);
-        ResetNoteScore(holdControls);
-        ResetNoteScore(flickControls);
+        i = 0;
+        if (baseNoteControls == null) return;
 
-        void ResetNoteScore<T>(List<T> baseNoteControls)
-            where T : BaseNoteControl
+        while (i < baseNoteControls.Count)
         {
-            foreach (var control in baseNoteControls)
+            var control = baseNoteControls[i];
+            var tempoNoteInfo = control.noteInfor;
+
+            // 位置计算和可见性逻辑
+            float floorPosition = tempoNoteInfo.floorPosition;
+            int judgeLineIndex = tempoNoteInfo.judgeLineIndex;
+
+            if (judgeLineIndex < levelInformation.floorPositions.Length)
             {
+                float targetPos = levelInformation.floorPositions[judgeLineIndex];
+                float positionDiff = floorPosition - targetPos;
+
+                if (tempoNoteInfo.type != 3)
+                {
+                    if (tempoNoteInfo.realTime < progressControl.nowTime)
+                    {
+                        // 情况1：音符时间已过，始终可见
+                        control.isVisible = true;
+                    }
+                    else
+                    {
+                        // 计算位置偏移阈值（动态调整）
+                        float threshold = Mathf.Max(tempoNoteInfo.floorPosition / 6000000f, 0.001f);
+
+                        if (positionDiff >= -threshold)
+                        {
+                            // 计算速度调整后的位置偏移
+                            float speedAdjustedOffset = positionDiff * tempoNoteInfo.speed * LevelInformation.speed;
+
+                            // 情况2：位置偏移在可接受范围内
+                            control.isVisible = speedAdjustedOffset <= 20f;
+                        }
+                        else
+                        {
+                            control.isVisible = false;
+                        }
+                        // 情况3：位置偏移超出阈值，不可见
+                    }
+                }
+                else
+                {
+                    // 开始时间小于当前时间
+                    if (tempoNoteInfo.realTime < progressControl.nowTime)
+                    {
+                        // 开始时间小于当前时间并且结束时间大于当前时间
+                        control.isVisible =
+                                tempoNoteInfo.realTime + tempoNoteInfo.holdTime > progressControl.nowTime;
+                    }
+                    else
+                    {
+                        // 计算位置偏移阈值（动态调整）
+                        float threshold = Mathf.Max(tempoNoteInfo.floorPosition / 6000000f, 0.001f);
+
+                        if (positionDiff >= -threshold)
+                        {
+                            // 计算速度调整后的位置偏移
+                            float speedAdjustedOffset = positionDiff * LevelInformation.speed;
+
+                            // 情况2：位置偏移在可接受范围内
+                            control.isVisible = speedAdjustedOffset <= 20f;
+                        }
+                        else
+                        {
+                            control.isVisible = false;
+                        }
+                    }
+                }
+
+
+                // 如果可见则更新位置
+                // if (control.isVisible)
+                {
+                    if (tempoNoteInfo.type == 3)
+                    {
+                        (control as HoldControl).timeOfJudge += Time.deltaTime;
+                    }
+
+                    control.NoteMove();
+                }
+                /*else
+                {
+                    // 隐藏时移动到屏幕外
+                    control.transform.localPosition = new Vector3(0, 0, -50);
+                }*/
+
                 control.NoteReset();
             }
+
+            i++;
         }
     }
 
@@ -147,26 +240,13 @@ public class GameUpdateManager : MonoBehaviour
                     control.transform.localPosition = new Vector3(0, 0, -50);
                 }
 
-                if (progressControl.isPaused)
-                {
-                    i++;
-                    continue;
-                }
-
                 if (tempoNoteInfo.realTime < progressControl.nowTime + 2f)
                 {
                     if (control.Judge())
                     {
-                        /*Destroy(control.gameObject);
+                        control.gameObject.SetActive(false);
                         baseNoteControls.RemoveAt(i);
-                        i--;*/
-
-                        if (!progressControl.isPaused)
-                        {
-                            control.gameObject.SetActive(false);
-                            baseNoteControls.RemoveAt(i);
-                            i--;
-                        }
+                        i--;
                     }
                 }
             }
@@ -177,6 +257,11 @@ public class GameUpdateManager : MonoBehaviour
 
     private void Update()
     {
+        if (progressControl.status == TimerState.Stop)
+        {
+            return;
+        }
+
         if (levelInformation == null || !levelInformation.chartLoaded)
             return;
 
@@ -199,10 +284,22 @@ public class GameUpdateManager : MonoBehaviour
             }
         }
 
-        // 2. 处理ClickControls
-        UpdateNoteControls(clickControls);
-        UpdateNoteControls(dragControls);
-        UpdateNoteControls(holdControls);
-        UpdateNoteControls(flickControls);
+        if (progressControl.status == TimerState.Running)
+        {
+            // 2. 处理ClickControls
+            UpdateNoteControls(clickControls);
+            UpdateNoteControls(dragControls);
+            UpdateNoteControls(holdControls);
+            UpdateNoteControls(flickControls);
+        }
+        else
+        {
+            // 2. 处理ClickControls
+            UpdateNoteControlsE(clickControlsBK);
+            UpdateNoteControlsE(dragControlsBK);
+            UpdateNoteControlsE(holdControlsBK);
+            UpdateNoteControlsE(flickControlsBK);
+        }
+        
     }
 }

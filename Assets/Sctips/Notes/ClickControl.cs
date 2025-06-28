@@ -7,6 +7,12 @@ public class ClickControl : BaseNoteControl
 {
     public override bool Judge()
     {
+        // 调整时间的跳过
+        if (isJudged)
+        {
+            return true;
+        }
+
         // 获取音符信息
         ChartNote noteInfor = this.noteInfor;
 
@@ -18,6 +24,25 @@ public class ClickControl : BaseNoteControl
 
         // 计算时间差
         float timeDiff = noteInfor.realTime - this.progressControl.nowTime;
+
+        if (GameUpdateManager.instance.AUTO_PLAY)
+        {
+            // PERFECT 判定
+            if (timeDiff <= 0)
+            {
+                isJudged = true;
+                HitSongManager.instance.Play(0);
+                Transform transform = this.transform;
+
+                transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
+
+                HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
+                return true;
+            }
+            return false;
+        }
 
         // 已判定音符的处理
         if (this.isJudged)
@@ -33,6 +58,8 @@ public class ClickControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(true, noteScale, transform);
+
+                ScoreManager.instance.Hit();
 
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
@@ -54,6 +81,8 @@ public class ClickControl : BaseNoteControl
                 transform.localPosition = new Vector3(noteInfor.positionX, 0, 0);
 
                 HitEffectManager.instance.Play(false, noteScale, transform);
+
+                ScoreManager.instance.Hit();
                 /*if (this.scoreControl == null) throw new NullReferenceException();
 
                 Vector3 position = transform.position;
@@ -81,6 +110,8 @@ public class ClickControl : BaseNoteControl
                     spawnPosition,
                     thisTransform.rotation
                 );
+
+                ScoreManager.instance.Miss();
                 /*
                 this.scoreControl.Bad(this.noteInfor.noteCode, -timeDiff);
 
@@ -113,6 +144,8 @@ public class ClickControl : BaseNoteControl
             /*if (this.scoreControl == null) throw new NullReferenceException();
 
             this.scoreControl.Miss(this.noteInfor.noteCode);*/
+
+            ScoreManager.instance.Miss();
 
             // 更新音符判定状态
             noteInfor.isJudged = true;
