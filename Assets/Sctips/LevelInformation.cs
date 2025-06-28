@@ -17,7 +17,7 @@ public class LevelInformation : MonoBehaviour
     public List<GameObject> judgeLines; // 0x48
     public bool aPfCisOn; // 0x51
     public float[] floorPositions; // 0x58
-    public bool chartLoaded; // 0x60
+    public static bool chartLoaded; // 0x60
     public bool levelBegan; // 0x61
     public bool levelOver; // 0x62
     public bool hitFxIsOn; // 0x63

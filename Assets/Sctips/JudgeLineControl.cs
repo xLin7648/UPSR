@@ -44,13 +44,10 @@ public class JudgeLineControl : MonoBehaviour
     private float moveScale; // 0x110
     public SpriteRenderer _judgeLineSpriteRenderer; // 0x118
 
-    private void Start()
+    public void Init()
     {
         // 获取NoteUpdateManager组件
-        if (levelInformation != null)
-        {
-            gameUpdateManager = levelInformation.GetComponent<GameUpdateManager>();
-        }
+        gameUpdateManager = levelInformation.GetComponent<GameUpdateManager>();
 
         // 从LevelInformation获取对应判定线数据
         if (levelInformation != null &&
@@ -66,11 +63,7 @@ public class JudgeLineControl : MonoBehaviour
             notesBelow = judgeLine.notesBelow;
         }
 
-        // 加载配置数据
-        if (levelInformation != null)
-        {
-            noteScale = levelInformation.noteScale;
-        }
+        noteScale = levelInformation.noteScale;
 
         // 计算屏幕适配比例
         float screenRatio = (float)Screen.height / Screen.width;
@@ -124,17 +117,14 @@ public class JudgeLineControl : MonoBehaviour
         transform.localRotation = Quaternion.AngleAxis(0.0f, Vector3.forward);
 
         // 处理速度事件
-        if (levelInformation != null)
+        // 创建新音符
+        for (int i = 0; i < notesAbove.Count; i++)
         {
-            // 创建新音符
-            for (int i = 0; i < notesAbove.Count; i++)
-            {
-                CreateNote(i, true);
-            }
-            for (int j = 0; j < notesBelow.Count; j++)
-            {
-                CreateNote(j, false);
-            }
+            CreateNote(i, true);
+        }
+        for (int j = 0; j < notesBelow.Count; j++)
+        {
+            CreateNote(j, false);
         }
     }
 
@@ -328,16 +318,26 @@ public class JudgeLineControl : MonoBehaviour
         }
     }
 
-    public void CreateNote<T>(
-        GameObject prefab, Transform parent, ChartNote chartNote, List<T> controls, Sprite HLSprite
+    public void CreateNote(
+        GameObject prefab, Transform parent, ChartNote chartNote, Sprite HLSprite
     )
-        where T : BaseNoteControl
     {
-        if (
-            controls == null ||
-            !Instantiate(prefab, parent)
-                .TryGetComponent<T>(out var control)
-        ) return;
+        if (!Instantiate(prefab, parent).TryGetComponent<BaseNoteControl>(out var control)) 
+            return;
+
+        var gum = gameUpdateManager;
+
+        var controls = chartNote.type switch
+        {
+            1 => gum.clickControlsBK,
+            2 => gum.dragControlsBK,
+            3 => gum.holdControlsBK,
+            4 => gum.flickControlsBK,
+            _ => null
+        };
+
+        if (controls == null)
+            return;
 
         control.transform.position = new Vector3(1000f, 0f, 0f); // 初始位置在屏幕外
 
@@ -390,10 +390,10 @@ public class JudgeLineControl : MonoBehaviour
         switch (chartNote.type)
         {
             case 1: // Click
-                CreateNote(Click, transform, chartNote, gameUpdateManager.clickControls, ClickHL);
+                CreateNote(Click, transform, chartNote, ClickHL);
                 break;
             case 2: // Drag
-                CreateNote(Drag, transform, chartNote, gameUpdateManager.dragControls, DragHL);
+                CreateNote(Drag, transform, chartNote, DragHL);
                 break;
 
             case 3: // Hold (跳过实现)
@@ -437,7 +437,7 @@ public class JudgeLineControl : MonoBehaviour
                 }
 
                 // 4. 添加到更新管理器
-                gameUpdateManager.holdControls.Add(holdControl);
+                gameUpdateManager.holdControlsBK.Add(holdControl);
 
                 // 5. 根据屏幕比例调整音符大小
                 float screenAspect = (float)Screen.width / Screen.height;
@@ -453,7 +453,7 @@ public class JudgeLineControl : MonoBehaviour
                 return;
 
             case 4: // Flick
-                CreateNote(Flick, transform, chartNote, gameUpdateManager.flickControls, FlickHL);
+                CreateNote(Flick, transform, chartNote, FlickHL);
                 break;
         }
     }

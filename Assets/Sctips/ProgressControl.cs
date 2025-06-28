@@ -17,16 +17,24 @@ public class ProgressControl : MonoBehaviour
     public GameUpdateManager gameUpdateManager;
     public TimerState status { get; private set; } = TimerState.Stop;
 
-    private bool PreviDirty;
     private float startTime = float.NaN;
     private float pausedTime = float.NaN;
     private float _speed = 1f;
     private float _lastSpeedChangedProgress = 0f;
 
+    private Coroutine PlayCoroutine;
+
     public void Play()
     {
-        gameUpdateManager.BK();
-        StartCoroutine(PlayM());
+        if (!LevelInformation.chartLoaded)
+        {
+            return;
+        }
+
+        if (PlayCoroutine != null)
+            StopCoroutine(PlayCoroutine);
+
+        PlayCoroutine = StartCoroutine(PlayM());
 
         IEnumerator PlayM()
         {
@@ -49,7 +57,6 @@ public class ProgressControl : MonoBehaviour
 
             status = TimerState.Running;
             pausedTime = float.NaN;
-            PreviDirty = false;
         }
     }
 
@@ -69,6 +76,10 @@ public class ProgressControl : MonoBehaviour
             pausedTime = float.NaN;
             status = TimerState.Running;
             audioSource.Play();
+        }
+        else
+        {
+            Play();
         }
     }
 
@@ -109,25 +120,14 @@ public class ProgressControl : MonoBehaviour
 
     public void SetSlider(float value)
     {
+        if (status == TimerState.Stop || !LevelInformation.chartLoaded)
+            return;
+
         pausedTime = Time.time;
         status = TimerState.Pause;
         audioSource.Pause();
 
-        var newTime = value * audioSource.clip.length;
-
-        if (newTime <= time)
-        {
-            if (newTime <= time && !PreviDirty)
-            {
-                PreviDirty = true;
-            }
-            else
-            {
-                PreviDirty = false;
-            }
-        }
-
-        Seek(newTime);
+        Seek(value * audioSource.clip.length);
     }
 
     private void Update()

@@ -61,7 +61,7 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
         _safeFrame = 2;
         timeOfJudge = 0;
 
-        var result = noteInfor.time <= progressControl.nowTime;
+        var result = noteInfor.realTime + noteInfor.holdTime <= progressControl.nowTime;
 
         if (result)
         {
@@ -69,6 +69,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             isJudged = true;
             judgeOver = true;
             missed = true;
+
+            gameObject.SetActive(false);
         }
         else
         {
@@ -76,6 +78,8 @@ public class HoldControl : BaseNoteControl // TypeDefIndex: 7910
             judged = false;
             isJudged = false;
             judgeOver = false;
+
+            gameObject.SetActive(true);
         }
         
         isPerfect = false;

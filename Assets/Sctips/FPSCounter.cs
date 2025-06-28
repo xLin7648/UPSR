@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI; // 如果使用传统Text
 
@@ -12,7 +13,7 @@ public class FPSCounter : MonoBehaviour
     void Start()
     {
         Application.runInBackground = true;
-        Application.targetFrameRate = 120;
+        // Application.targetFrameRate = int.Parse(File.ReadAllText("C://s.txt"));
 
          if (fpsTextLegacy == null)
             fpsTextLegacy = GetComponent<Text>();

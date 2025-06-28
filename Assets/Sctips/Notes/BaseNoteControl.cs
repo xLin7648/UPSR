@@ -43,15 +43,17 @@ public abstract class BaseNoteControl : MonoBehaviour
     {
         SetScale();
 
-        var result = noteInfor.time <= progressControl.nowTime;
+        var result = noteInfor.realTime <= progressControl.nowTime;
 
         if (result)
         {
             isJudged = true;
+            gameObject.SetActive(false);
         }
         else
         {
             isJudged = false;
+            gameObject.SetActive(true);
         }
 
         NoteMove();

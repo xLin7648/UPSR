@@ -298,7 +298,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -587,7 +586,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 705e802c7af4cf7468a397edc0885388, type: 3}
+  m_Sprite: {fileID: 21300000, guid: af32857a46f27d549a0bb974d09d7fa2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -812,7 +811,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 10, y: 149.37}
+  m_AnchoredPosition: {x: 10, y: 149.5}
   m_SizeDelta: {x: 326.81, y: 212.8}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &570587876
@@ -1822,7 +1821,7 @@ RectTransform:
   m_GameObject: {fileID: 785055926}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 782684186}
@@ -1831,10 +1830,10 @@ RectTransform:
   m_Father: {fileID: 775892006}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -472.1}
-  m_SizeDelta: {x: 1163.78, y: 20}
+  m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &785055928
 MonoBehaviour:
@@ -2110,7 +2109,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -4.999939, y: 0}
+  m_AnchoredPosition: {x: -4.999878, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1011724281
@@ -2147,7 +2146,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -4.999939, y: 0}
+  m_AnchoredPosition: {x: -4.999878, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1014454512
@@ -2267,9 +2266,10 @@ MonoBehaviour:
   lineParent: {fileID: 732291736}
   linePrefabe: {fileID: 6141221884465083543, guid: 9da206fb08780a340bfa4ade64f554ee, type: 3}
   judgeControl: {fileID: 1142611663}
+  gameUpdateManager: {fileID: 1142611664}
   progressControl: {fileID: 1142611665}
   levelInformation: {fileID: 1142611666}
-  chartAsset: {fileID: 4900000, guid: 5b40b5fef4aedd54cb6c904b5182f364, type: 3}
+  chartAsset: {fileID: 4900000, guid: e862ad24ce3ef23478dbcebd915c08ff, type: 3}
   Click: {fileID: 5206859143206763386, guid: 4eb1542af296543419ed21d31457e891, type: 3}
   Drag: {fileID: 533283253768445300, guid: 088becf513ccdb44e973435b870263b4, type: 3}
   Hold: {fileID: 4319876009200234758, guid: e9131c865434cf844a39d663f64049d3, type: 3}
@@ -2397,7 +2397,6 @@ MonoBehaviour:
   judgeLines: []
   aPfCisOn: 0
   floorPositions: []
-  chartLoaded: 0
   levelBegan: 0
   levelOver: 0
   hitFxIsOn: 0
@@ -2492,7 +2491,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2704,7 +2702,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 1430935447
   m_SortingOrder: 50
@@ -2900,7 +2897,6 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -3451,7 +3447,7 @@ RectTransform:
   m_GameObject: {fileID: 2119577863}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 706708387}
@@ -3460,10 +3456,10 @@ RectTransform:
   m_Father: {fileID: 775892006}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -425}
-  m_SizeDelta: {x: 1163.78, y: 20}
+  m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2119577865
 MonoBehaviour:
@@ -3555,7 +3551,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 748e2813600c6e94bb60f57e340ba194, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 4ddf1eeb1d0298543bd7523175e43795, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.182
   m_Pitch: 1

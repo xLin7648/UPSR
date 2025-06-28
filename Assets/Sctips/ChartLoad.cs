@@ -81,6 +81,7 @@ public class ChartLoad : MonoBehaviour
     public GameObject linePrefabe;
 
     public JudgeControl judgeControl;
+    public GameUpdateManager gameUpdateManager;
     public ProgressControl progressControl;
     public LevelInformation levelInformation;
 
@@ -178,6 +179,8 @@ public class ChartLoad : MonoBehaviour
             judgeLineControl.HoldHL1 = HoldHL1;
             judgeLineControl.FlickHL = FlickHL;
 
+            judgeLineControl.Init();
+
             // 添加到列表
             levelInformation.judgeLines.Add(judgeLineObj);
             judgeControl.judgeLines.Add(judgeLineObj);
@@ -206,7 +209,9 @@ public class ChartLoad : MonoBehaviour
         }
 
         // 标记谱面加载完成
-        levelInformation.chartLoaded = true;
+        LevelInformation.chartLoaded = true;
+
+        gameUpdateManager.RBK(true);
     }
 
     private void SortForNoteWithFloorPosition()
