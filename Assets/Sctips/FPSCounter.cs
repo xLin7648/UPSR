@@ -35,6 +35,6 @@ public class FPSCounter : MonoBehaviour
                           fps > 30 ? "#ffff00" :  // »ÆÉ«
                           "#ff0000";              // ºìÉ«
 
-        return $"<color={colorHex}>FPS: {fps:F1}</color>";
+        return $"<color={colorHex}>FPS: {(int)fps}</color>";
     }
 }
